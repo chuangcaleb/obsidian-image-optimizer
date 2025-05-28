@@ -1,6 +1,6 @@
 # Obsidian Image Optimizer
 
-A simple image optimizer to (1) compress, (2) slugify, (3) content hash.
+A simple image optimizer Obsidian plugin to (1) compress, (2) slugify, (3) content hash.
 
 ## Features
 
