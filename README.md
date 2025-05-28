@@ -130,12 +130,12 @@ Definitely ones I'm too lazy to do, but would be amazing QOL
 
 ## Related Plugins
 
-> [!NOTE] Obsidian Image Converter plugin
+> [!info] Obsidian Image Converter plugin
 > [xRyul/obsidian-image-converter: ⚡️ Convert, compress, resize, annotate, markup, draw, crop, rotate, flip, align images directly in Obsidian. Drag-resize, rename with variables, batch process. WEBP, JPG, PNG, HEIC, TIF.](https://github.com/xryul/obsidian-image-converter)
 >
 > - Full toolkit for image transformations like annotations, drawing, cropping. So much more out of scope
 > - `webp` compression uses HTML Canvas trick, which is not as optimal/tunable as `sharp` (or whatever else, really)
 
-> [!NOTE] Obsidian Paste Image Rename plugin
+> [!info] Obsidian Paste Image Rename plugin
 > obsidian://show-plugin?id=obsidian-paste-image-rename
 > Only handles file renames, if that's all you need. Interesting idea for name templates per-note
