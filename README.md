@@ -22,13 +22,21 @@ What this plugin doesn't do:
 - Image transformation (other than compression)
 - Create responsive variants (e.g. creating duplicate files at 64x64, 256x256, etc.)
 
+## Use Case
+
+I use Obsidian to author blog posts. I store images in a directory, which is synced to a S3 bucket, which in turn exposes a URL resource on a page of my blog site.
+
+I want to upload pre-compressed images, ready for the web, even before uploading the images to the cloud (this saves on expensive network egress AND takes less space on your storage!). Files already slugified on the bucket, means that the CDN doesn't need to preprocess further. Then, appending a hash (based on content) allows the cache busting strategy.
+
+I will also use this plugin to compress the images that I'm not exposing to the public web. Compressing your images by default is virtually always good. Takes up less space in your device storage and during cloud sync.
+
 ## Disclaimer
 
 This plugin uses a technical workaround for image compression. You will need minor tech literacy to get the plugin to work.
 
 Also goes to say. Only use this plugin if you know what you're doing. You will involve a custom script, so please don't blindly copy-paste arbitrary untrusted code and execute it.
 
-This plugin is also DESTRUCTIVE, since it deletes the unoptimized file after the optimized version is created. Do not use without reliable backup (or unless you know what you're doing).
+This plugin is also DESTRUCTIVE, since it deletes your original unoptimized file after the optimized version is created. Do not use without reliable backup (or unless you know what you're doing).
 
 I threw this plugin together sloppily for my personal use case. I don't bother to make it airtight. Please try it out first on an empty vault, and then still use with reasonable caution.
 
@@ -38,7 +46,7 @@ You may open the Obsidian vault at `obsidian-image-optimizer-test` directory fro
 
 1. Create or open existing Obsidian vault.
 2. Install Obsidian plugin, unofficially, through [BRAT](https://github.com/TfTHacker/obsidian42-brat)
-3. Install an image compression script, somewhere in your vault (see below)
+3. Add a custom image compression script, somewhere in your vault (see below)
 4. Navigate to Image Optimizer plugin settings, and fil in `Absolute path to runtime` and `Absolute path to compression script`
 
 You now have two methods of optimizing images:
@@ -55,15 +63,26 @@ Automatic
 2. Drag and drop a new image into a note (or manually drag it into Obsidian's File Explorer)
 3. Wait... Profit.
 
-### How to install image compression script
+### How to add an image compression script
 
 1. Create a folder somewhere in your vault (e.g. at `./scripts/compress/`)
 2. Put your compression script files inside. You may copy over files from the example provided at `obsidian-image-optimizer-test/scripts/compress`.
 3. Make sure to install any required dependencies. Run `pnpm install`.
 
+If you want to use your own compression script, there are just these requirements. If not, skip ahead.
+
+1. The plugin will execute a CLI command with three parameters. Make sure your script's 3rd argument is interpreted as the image filepath (`process.argv[2]` in the case of a node script)
+    1. Runtime executable path (e.g. node)
+    2. Script file path (e.g. .../compress/index.js)
+    3. Original unoptimized image filepath (.../original-image.jpg)
+2. The script will produce the newly compressed image with these attributes:
+    1. Same directory as the original image
+    2. Same filename as the original image
+    3. Replaces the image file extension with a `.temp` extension. (e.g. `image.jpg` → `image.temp`)
+
 ### How to fill in the "Absolute path" settings
 
-For `Absolute path to runtime`, if you are using the example script, then you are using a `node` runtime. Enter the result of this:
+For `Absolute path to runtime`, if you are using the example script, then you are using a `node` runtime. Use the result of this:
 
 ```shell
 which node
@@ -73,17 +92,9 @@ which node
 
 For `Absolute path to compression script`,
 
-1. Find the entry point file. In the case of the example, it is the `scripts/compress/index.js`
-2. Copy its absolute filepath (should start with a slash `/`).
+1. Find the entry point file. In the case of the example, it is the [index.js here](obsidian-image-optimizer-test/scripts/compress/index.js)
+2. Copy its absolute filepath (should start with a slash `/`, from your root directory).
 3. Paste this value into the field.
-
-## Use Case
-
-I use Obsidian to author blog posts. I store images in a directory, which is synced to a S3 bucket, which in turn exposes a URL resource on a page of my blog site.
-
-I want to upload pre-compressed images, ready for the web, even before uploading the images to the cloud (this saves on expensive network egress AND takes less space on your storage!). Files already slugified on the bucket, means that the CDN doesn't need to preprocess further. Then, appending a hash (based on content) allows the cache busting strategy.
-
-I will also use this plugin to compress the images that I'm not exposing to the public web. Compressing your images by default is virtually always good. Takes up less space in your device storage and during cloud sync.
 
 ## Technical Challenge
 
@@ -95,7 +106,7 @@ I thought there would be an existing plugin out there. Or Templater user script.
 
 I tried alternatives. The HTML Canvas trick did not compress nearly as much as `sharp` could. Then `@squoosh/lib` didn't work either, needed some WASM binding. A `node` server could also be running `sharp`, but overengineering!!
 
-### Solution - Bring your own code
+### Hacky Solution - Bring your own code
 
 We can still, within native `node` runtime, make an `exec` call to a custom `node` script to compress our images. We can step out for a while, then step back in!
 
@@ -103,7 +114,9 @@ The user will need to bring their own script, powered by `sharp`, or other compr
 
 ### Waiting for metadata cache
 
-Issue: If we rename the file right away, the file will be renamed, but the references in markdown notes, won't. This is because we need to wait for metadata cache to be ready. This is why there is a delay when the processing is triggered. But you can safely leave it to run in the background.
+Issue: If we rename the file right away, the file will be renamed, but the references in markdown notes, won't.
+
+This is because we need to wait for metadata cache to be ready. This is why there is a delay when the processing is triggered. But you can safely leave it to run in the background.
 
 ## Contributing & Maintenance
 

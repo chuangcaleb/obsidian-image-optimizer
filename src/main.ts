@@ -170,10 +170,6 @@ export default class MyPlugin extends Plugin {
 	/* ------------------------------- - ----------------------------------- */
 
 	private async processFile(file: TFile): Promise<void> {
-		new Notice(`Image Optimizer: Waiting for metadata cache...`);
-		// await fresh metadata before starting anything
-		await this.waitForMetadataReady(file);
-
 		const oldName = file.name;
 
 		// Skip if filename already ends with a slug-hash pattern
@@ -181,9 +177,7 @@ export default class MyPlugin extends Plugin {
 		const basename = file.basename;
 		const fullName = `${basename}.${extension}`;
 		if (/-[a-f\d]{8}\.[a-z]{2,4}$/i.test(fullName)) {
-			new Notice(
-				`Image Optimizer: Skipping "${fullName}": already hashed`,
-			);
+			new Notice(`Image Optimizer: Skipping ${fullName}, already hashed`);
 			return;
 		}
 
@@ -242,7 +236,7 @@ export default class MyPlugin extends Plugin {
 
 		/* ------------------------------ slug ---------------------------------- */
 		const slug = slugify(basename);
-		// const newName = `${slug}-${hash}.${extension}`;
+		// TODO: settings template for new file extension
 		const newName = `${slug}-${hash}.webp`;
 
 		// get new route
@@ -255,13 +249,17 @@ export default class MyPlugin extends Plugin {
 		})();
 		const newPath = path.join(parentPath, newName);
 
+		new Notice(`Image Optimizer: Waiting for metadata cache...`);
+		// await fresh metadata before starting anything
+		await this.waitForMetadataReady(file);
+
 		/* ------------------------------ write --------------------------------- */
 
 		// Skip if a file with the same name already exists
 		const maybeExisting = this.app.vault.getAbstractFileByPath(newPath);
 		if (maybeExisting) {
 			new Notice(
-				`Image Optimizer: Skipped - "${newName}" already ends in an 8-character hash. Remove that suffix and try again?`,
+				`Image Optimizer: Skipped ${newName}, as it already ends in an 8-character hash. Remove that suffix and try again?`,
 			);
 			return;
 		}
@@ -275,9 +273,7 @@ export default class MyPlugin extends Plugin {
 		const newFile = this.app.vault.getAbstractFileByPath(newPath);
 		if (!(newFile instanceof TFile)) {
 			// should not reach here
-			new Notice(
-				`Image Optimizer: Failed to find new file - "${newName}"`,
-			);
+			new Notice(`Image Optimizer: Failed to find new file ${newName}`);
 			return;
 		}
 
