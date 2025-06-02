@@ -71,7 +71,9 @@ export default class MyPlugin extends Plugin {
 			this.app,
 			this.processFile.bind(this) as typeof this.processFile,
 		);
-		this.applySettings();
+		this.app.workspace.onLayoutReady(() => {
+			this.applySettings();
+		});
 		this.addSettingTab(new SampleSettingTab(this));
 	}
 
