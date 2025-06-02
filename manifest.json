@@ -1,7 +1,7 @@
 {
 	"id": "image-optimizer",
 	"name": "Image Optimizer",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"minAppVersion": "0.15.0",
 	"description": "A simple image optimizer to (1) compress, (2) slugify, (3) content hash.",
 	"author": "Chuang Caleb",
